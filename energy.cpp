@@ -47,15 +47,14 @@ void Energy::initEnergyPartParam()
 //---------------------------------------
 void Energy::run(cv::Mat &src)
 {
+	cv::Mat src_clone = src.clone();
 	clearAll();
-	cout << "clearAll()" << "  success" << endl;
-	initImage(src);
-	cout << "initImage(src)" << "  success" << endl; 
+	src = initImage(src);
 
 	if (show_process) imshow("bin", src);
 	if (findArmors(src)) return;
-	if (show_energy) showArmors("armor", src);
-	cout << "到目前位置程序都可以运行" << endl;
+	cout << findArmors(src);
+	if (show_energy) showArmors("made", src_clone);
 
 }
 
@@ -82,7 +81,7 @@ void Energy::showArmors(std::string windows_name, const cv::Mat &src)
 		}
 	}
 	imshow(windows_name, image2show);
-
+	waitKey(1);
 }
 
 void Energy::clearAll()
@@ -95,22 +94,34 @@ void Energy::clearAll()
 
 }
 
-void Energy::initImage(cv::Mat &src)
+Mat Energy::initImage(cv::Mat &src)
 {
+	/*
 	if(src.type() == CV_8UC3)
 	{
 		cvtColor(src, src, COLOR_BGR2GRAY);
 	}
+	*/
+	vector<cv::Mat> imgChannels;
+	split(src, imgChannels);
 
-	threshold(src, src, energy_part_param_.RED_GRAY_THRESH, 255, THRESH_BINARY);
-	if(show_process) imshow("bin", src);
+#ifdef RED
+Mat midImage = imgChannels.at(2) - imgChannels.at(0);
+#endif
+#ifndef RED
+Mat midImage = imgChannels.at(0) - imgChannels.at(2);
+#endif
+
+//	threshold(src, src, energy_part_param_.BLUE_GRAY_THRESH, 255, THRESH_BINARY);
+	threshold(midImage, midImage, 100, 255, CV_THRESH_BINARY);
+	if(show_process) imshow("bin", midImage);
 	if(show_energy || show_process) waitKey(1);
 
-
+	return midImage;
 }
 
 int Energy::findArmors(const cv::Mat &src)
-{
+/*{
 	if(src.empty())
 	{
 		std::cout << "empty!" << std::endl;
@@ -147,15 +158,67 @@ int Energy::findArmors(const cv::Mat &src)
 
 	for(auto &armor_contour : armor_contours)
 	{
-		if(!isValidArmorContour(armor_contour))
+		if(1)
+		//if(!isValidArmorContour(armor_contour))
 		{
 			continue;
 		}
 		armors.emplace_back(cv::minAreaRect(armor_contour));
 	}
-
+	cout << static_cast<int>(armors.size()) << endl;
+	cout << "??" << endl;
 	return static_cast<int>(armors.size());
 }
+*/
+{
+    if (src.empty())                // 如果没有图像
+    {
+        cout << "empty!" << endl;
+        return 0;
+    }
+    static Mat src_bin;     
+    src_bin = src.clone();
+
+    std::vector<vector<Point> > armor_contours; // 装甲板轮廓
+    std::vector<vector<Point> > armor_contours_external;//用总轮廓减去外轮廓，只保留内轮廓，除去流动条的影响。
+
+    ArmorStruct(src_bin);//图像膨胀，防止图像断开并更方便寻找
+    findContours(src_bin, armor_contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+    if (show_process)imshow("armor struct", src_bin);
+
+    findContours(src_bin, armor_contours_external, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+    for (int i = 0; i < armor_contours_external.size(); i++)//去除外轮廓
+    {
+        unsigned long external_contour_size = armor_contours_external[i].size();
+        for (int j = 0; j < armor_contours.size(); j++) 
+        {
+            unsigned long all_size = armor_contours[j].size();
+            if (external_contour_size == all_size) 
+            {
+                swap(armor_contours[j], armor_contours[armor_contours.size() - 1]);
+                armor_contours.pop_back();
+                break;
+            }
+        }
+    }
+
+    for (auto &armor_contour : armor_contours) 
+    {
+        if (!isValidArmorContour(armor_contour)) // 此函数用于判断找到的矩形候选区是否为装甲板
+        {
+            continue;
+        }
+        armors.emplace_back(cv::minAreaRect(armor_contour));
+    }
+
+//    if (show_info) 
+//    {
+//        if (armors.size() < 1)cout << "no armors!" << endl;
+//    }
+
+    return static_cast<int>(armors.size());
+}
+
 
 
 void Energy::ArmorStruct(cv::Mat &src)
