@@ -36,8 +36,16 @@ class Energy
 		
 		int findArmors(const cv::Mat &src); // 寻找途中所有装甲版
 
+		bool isValidArmorContour(const vector<cv::Point>&armor_contour);
+
 		void clearAll(); // 用于晴空各vector
 		void initImage(cv::Mat &src);// 图像预处理
+
+		void showArmors(std::string windows_name, const cv::Mat& src);
+
+
+
+		void ArmorStruct(cv::Mat &src);
 };
 
 
