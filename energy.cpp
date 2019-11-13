@@ -3,7 +3,7 @@
 using namespace cv;
 using namespace std;
 
-Energy::Energy(uint8_t&color):ally_color(color),
+Energy::Energy():
 			src_blue(SRC_HEIGHT,SRC_WIDTH,CV_8UC1),
 			src_red(SRC_HEIGHT, SRC_WIDTH,CV_8UC1){
 	initEnergy();
@@ -48,10 +48,20 @@ void Energy::initEnergyPartParam()
 void Energy::run(cv::Mat &src)
 {
 	clearAll();
+	cout << "clearAll()" << "  success" << endl;
 	initImage(src);
+	cout << "initImage(src)" << "  success" << endl; 
 
 	if (show_process) imshow("bin", src);
+	if (findArmors(src)) return;
+	if (show_energy) showArmors("armor", src);
+	cout << "到目前位置程序都可以运行" << endl;
 
+}
+
+void Energy::showArmors(std::string windows_name, const cv::Mat &src)
+{
+	if(src.empty()) return;
 
 }
 
@@ -142,7 +152,7 @@ void Energy::ArmorStruct(cv::Mat &src)
 }
 
 
-bool Eergy::isValidArmorContour(const vector<cv::Point>&armor_contour)
+bool Energy::isValidArmorContour(const vector<cv::Point>&armor_contour)
 {
 	double cur_contour_area = contourArea(armor_contour);
 	if(cur_contour_area>energy_part_param_.ARMOR_CONTOUR_AREA_MAX ||
@@ -164,7 +174,7 @@ bool Eergy::isValidArmorContour(const vector<cv::Point>&armor_contour)
 
 	float length_width_ratio = length/width;
 	if(length_width_ratio>energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MAX||
-	   length_width_ratio<energy_part_param_.ARMOR_CONTOUR_HW_ROTIO_MIN)
+	   length_width_ratio<energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MIN)
 	{
 		return false;
 	}
