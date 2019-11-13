@@ -4,7 +4,9 @@ using namespace std;
 using namespace cv;
 int main()
 {
-	Energy energy();
+	uint8_t s=1;
+
+	Energy energy(s);
 
 	Mat src = imread("/home/luo/lena.jpg");
 

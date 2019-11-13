@@ -3,7 +3,7 @@
 using namespace cv;
 using namespace std;
 
-Energy::Energy():
+Energy::Energy(uint8_t &color):ally_color(color),
 			src_blue(SRC_HEIGHT,SRC_WIDTH,CV_8UC1),
 			src_red(SRC_HEIGHT, SRC_WIDTH,CV_8UC1){
 	initEnergy();
