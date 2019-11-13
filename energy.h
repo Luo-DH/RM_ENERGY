@@ -34,6 +34,7 @@ class Energy
 		void initEnergy();
 		void initEnergyPartParam();// 能量机关参数初始化
 		
+		int findArmors(const cv::Mat &src); // 寻找途中所有装甲版
 
 		void clearAll(); // 用于晴空各vector
 		void initImage(cv::Mat &src);// 图像预处理
