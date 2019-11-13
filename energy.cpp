@@ -62,6 +62,26 @@ void Energy::run(cv::Mat &src)
 void Energy::showArmors(std::string windows_name, const cv::Mat &src)
 {
 	if(src.empty()) return;
+	static Mat image2show;
+
+	if(src.type() == CV_8UC1)
+	{
+		cvtColor(src, image2show, COLOR_GRAY2RGB);
+	}
+	else if (src.type()==CV_8UC3)
+	{
+		image2show = src.clone();
+	}
+	for(const auto &armor: armors)
+	{
+		Point2f vertices[4];
+		armor.points(vertices);
+		for (int i = 0;i<4;i++)
+		{
+			line(image2show, vertices[i], vertices[(i+1)%4], Scalar(0,0,255),2);
+		}
+	}
+	imshow(windows_name, image2show);
 
 }
 
