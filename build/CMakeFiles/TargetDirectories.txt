@@ -1,3 +1,0 @@
-/home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles/rebuild_cache.dir
-/home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles/demo.dir
-/home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles/edit_cache.dir

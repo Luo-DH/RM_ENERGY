@@ -4,11 +4,11 @@ using namespace std;
 using namespace cv;
 int main()
 {
-	Energy energy=new Energy();
+	Energy energy();
 
 	Mat src = imread("/home/luo/lena.jpg");
 
-	energy.run();
+	energy.run(src);
 
 	cout << "Success" << endl;
 
