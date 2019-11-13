@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/luo/myself/2019-11-12/energy
+CMAKE_SOURCE_DIR = /home/luo/myself/2019-11-13/energy/RM_ENERGY
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/luo/myself/2019-11-12/energy/build
+CMAKE_BINARY_DIR = /home/luo/myself/2019-11-13/energy/RM_ENERGY/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/luo/myself/2019-11-12/energy/build/CMakeFiles /home/luo/myself/2019-11-12/energy/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles /home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/luo/myself/2019-11-12/energy/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/luo/myself/2019-11-13/energy/RM_ENERGY/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named demo
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 main
-.PHONY : main
+demo: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 demo
+.PHONY : demo
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+demo/fast:
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/build
+.PHONY : demo/fast
 
 energy.o: energy.cpp.o
 
@@ -129,7 +129,7 @@ energy.o: energy.cpp.o
 
 # target to build an object file
 energy.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/energy.cpp.o
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/energy.cpp.o
 .PHONY : energy.cpp.o
 
 energy.i: energy.cpp.i
@@ -138,7 +138,7 @@ energy.i: energy.cpp.i
 
 # target to preprocess a source file
 energy.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/energy.cpp.i
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/energy.cpp.i
 .PHONY : energy.cpp.i
 
 energy.s: energy.cpp.s
@@ -147,7 +147,7 @@ energy.s: energy.cpp.s
 
 # target to generate assembly for a file
 energy.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/energy.cpp.s
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/energy.cpp.s
 .PHONY : energy.cpp.s
 
 main.o: main.cpp.o
@@ -156,7 +156,7 @@ main.o: main.cpp.o
 
 # target to build an object file
 main.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.o
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -165,7 +165,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.i
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -174,7 +174,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 options.o: options.cpp.o
@@ -183,7 +183,7 @@ options.o: options.cpp.o
 
 # target to build an object file
 options.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/options.cpp.o
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/options.cpp.o
 .PHONY : options.cpp.o
 
 options.i: options.cpp.i
@@ -192,7 +192,7 @@ options.i: options.cpp.i
 
 # target to preprocess a source file
 options.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/options.cpp.i
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/options.cpp.i
 .PHONY : options.cpp.i
 
 options.s: options.cpp.s
@@ -201,7 +201,7 @@ options.s: options.cpp.s
 
 # target to generate assembly for a file
 options.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/options.cpp.s
+	$(MAKE) -f CMakeFiles/demo.dir/build.make CMakeFiles/demo.dir/options.cpp.s
 .PHONY : options.cpp.s
 
 # Help Target
@@ -211,7 +211,7 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... main"
+	@echo "... demo"
 	@echo "... edit_cache"
 	@echo "... energy.o"
 	@echo "... energy.i"

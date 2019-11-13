@@ -6,11 +6,11 @@
 #include "constant.h"
 #include "param_struct_define.h"
 #include "options.h"
-
+#include "constants.h"
 class Energy
 {
 	public:
-		Energy(uint8_t&color);
+		Energy();
 		~Energy();
 		// 主函数确定大符模式还是小符模式
 		bool is_big;
@@ -21,7 +21,7 @@ class Energy
 	private:
 		EnergyPartParam energy_part_param_;//能力机关参数设置
 
-		uint8_t&ally_color; // 我方颜色
+		//uint8_t&ally_color; // 我方颜色
 		
 		std::vector<cv::RotatedRect> fans; // 图像中所有的扇叶
 		std::vector<cv::RotatedRect> armors; // 图像中可能的装甲版

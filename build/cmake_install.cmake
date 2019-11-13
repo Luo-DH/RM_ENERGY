@@ -1,4 +1,4 @@
-# Install script for directory: /home/luo/myself/2019-11-12/energy
+# Install script for directory: /home/luo/myself/2019-11-13/energy/RM_ENERGY
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/luo/myself/2019-11-12/energy/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/luo/myself/2019-11-13/energy/RM_ENERGY/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
