@@ -39,7 +39,7 @@ class Energy
 		bool isValidArmorContour(const vector<cv::Point>&armor_contour);
 
 		void clearAll(); // 用于晴空各vector
-		Mat initImage(cv::Mat &src);// 图像预处理
+		cv::Mat initImage(cv::Mat &src);// 图像预处理
 
 		void showArmors(std::string windows_name, const cv::Mat& src);
 
