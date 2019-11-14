@@ -32,14 +32,14 @@ void Energy::initEnergyPartParam()
 	energy_part_param_.RED_GRAY_THRESH = 180;
 	energy_part_param_.BLUE_GRAY_THRESH = 100;
 
-	energy_part_param_.ARMOR_CONTOUR_AREA_MAX = 500;
-	energy_part_param_.ARMOR_CONTOUR_AREA_MIN = 180;
-	energy_part_param_.ARMOR_CONTOUR_LENGTH_MAX = 50;
+	energy_part_param_.ARMOR_CONTOUR_AREA_MAX = 2000;
+	energy_part_param_.ARMOR_CONTOUR_AREA_MIN = 500;
+	energy_part_param_.ARMOR_CONTOUR_LENGTH_MAX = 300;
 	energy_part_param_.ARMOR_CONTOUR_LENGTH_MIN = 10;
-	energy_part_param_.ARMOR_CONTOUR_WIDTH_MAX = 30;
-	energy_part_param_.ARMOR_CONTOUR_WIDTH_MIN = 0;
-	energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MAX = 3;
-	energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MIN = 1;
+	energy_part_param_.ARMOR_CONTOUR_WIDTH_MAX = 200;
+	energy_part_param_.ARMOR_CONTOUR_WIDTH_MIN = 5;
+	energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MAX = 1.9;
+	energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MIN = 0.1;
 }
 
 //---------------------------------------
@@ -52,8 +52,7 @@ void Energy::run(cv::Mat &src)
 	src = initImage(src);
 
 	if (show_process) imshow("bin", src);
-	if (findArmors(src)) return;
-	cout << findArmors(src);
+	if (findArmors(src)<1) return;
 	if (show_energy) showArmors("made", src_clone);
 
 }
@@ -77,7 +76,7 @@ void Energy::showArmors(std::string windows_name, const cv::Mat &src)
 		armor.points(vertices);
 		for (int i = 0;i<4;i++)
 		{
-			line(image2show, vertices[i], vertices[(i+1)%4], Scalar(0,0,255),2);
+			line(image2show, vertices[i], vertices[(i+1)%4], Scalar(100,255,255),10);
 		}
 	}
 	imshow(windows_name, image2show);
@@ -96,12 +95,6 @@ void Energy::clearAll()
 
 Mat Energy::initImage(cv::Mat &src)
 {
-	/*
-	if(src.type() == CV_8UC3)
-	{
-		cvtColor(src, src, COLOR_BGR2GRAY);
-	}
-	*/
 	vector<cv::Mat> imgChannels;
 	split(src, imgChannels);
 
@@ -111,8 +104,6 @@ Mat midImage = imgChannels.at(2) - imgChannels.at(0);
 #ifndef RED
 Mat midImage = imgChannels.at(0) - imgChannels.at(2);
 #endif
-
-//	threshold(src, src, energy_part_param_.BLUE_GRAY_THRESH, 255, THRESH_BINARY);
 	threshold(midImage, midImage, 100, 255, CV_THRESH_BINARY);
 	if(show_process) imshow("bin", midImage);
 	if(show_energy || show_process) waitKey(1);
@@ -121,55 +112,6 @@ Mat midImage = imgChannels.at(0) - imgChannels.at(2);
 }
 
 int Energy::findArmors(const cv::Mat &src)
-/*{
-	if(src.empty())
-	{
-		std::cout << "empty!" << std::endl;
-		return 0;	
-	}
-
-	static Mat src_bin;
-	src_bin = src.clone();
-
-	std::vector<vector<Point> > armor_contours;
-	std::vector<vector<Point> > armor_contours_external;
-
-	ArmorStruct(src_bin); //图形膨胀
-	findContours(src_bin, armor_contours,CV_RETR_LIST,CV_CHAIN_APPROX_NONE);
-	if(show_process) imshow("armor struct", src_bin);
-
-	findContours(src_bin, armor_contours_external, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-	for(int i=0; i<armor_contours_external.size();i++)
-	{
-		unsigned long external_contour_size = armor_contours_external[i].size();
-		for(int j=0;j<armor_contours.size();j++)
-		{
-			unsigned long all_size = armor_contours[j].size();
-			if(external_contour_size == all_size)
-			{
-				swap(armor_contours[j], armor_contours[armor_contours.size()-1]);
-				armor_contours.pop_back();
-				break;
-			}
-
-		}
-	
-	}
-
-	for(auto &armor_contour : armor_contours)
-	{
-		if(1)
-		//if(!isValidArmorContour(armor_contour))
-		{
-			continue;
-		}
-		armors.emplace_back(cv::minAreaRect(armor_contour));
-	}
-	cout << static_cast<int>(armors.size()) << endl;
-	cout << "??" << endl;
-	return static_cast<int>(armors.size());
-}
-*/
 {
     if (src.empty())                // 如果没有图像
     {
@@ -183,10 +125,33 @@ int Energy::findArmors(const cv::Mat &src)
     std::vector<vector<Point> > armor_contours_external;//用总轮廓减去外轮廓，只保留内轮廓，除去流动条的影响。
 
     ArmorStruct(src_bin);//图像膨胀，防止图像断开并更方便寻找
-    findContours(src_bin, armor_contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-    if (show_process)imshow("armor struct", src_bin);
+    std::vector<Vec4i> hierarchy;
+    findContours(src_bin, armor_contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
-    findContours(src_bin, armor_contours_external, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+//------------------------------
+//画轮廓-----------------------
+//------------------------------
+/*
+    Mat imgContours = Mat::zeros(src.size(), CV_8UC1);
+    for(int i=0;i<armor_contours.size();i++)
+    {
+	    cv::drawContours(imgContours, armor_contours, i, Scalar(255),1,8,hierarchy);
+    }
+    imshow("contours", imgContours);
+ //   waitKey(0);
+*/
+    if (show_process)imshow("armor struct", src_bin);
+/*
+    std::vector<Vec4i> hierarchy2;
+    Mat imgContours2 = Mat::zeros(src.size(), CV_8UC1);
+*/    findContours(src_bin, armor_contours_external, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+/*    for (int i=0;i<armor_contours_external.size();i++)
+    {
+	    cv::drawContours(imgContours2,armor_contours_external,i,Scalar(255),1,8,hierarchy2);
+    }
+    imshow("external", imgContours2);
+    waitKey(1);
+*/
     for (int i = 0; i < armor_contours_external.size(); i++)//去除外轮廓
     {
         unsigned long external_contour_size = armor_contours_external[i].size();
@@ -195,7 +160,7 @@ int Energy::findArmors(const cv::Mat &src)
             unsigned long all_size = armor_contours[j].size();
             if (external_contour_size == all_size) 
             {
-                swap(armor_contours[j], armor_contours[armor_contours.size() - 1]);
+                swap(armor_contours[j],armor_contours[armor_contours.size()-1]);
                 armor_contours.pop_back();
                 break;
             }
@@ -204,21 +169,53 @@ int Energy::findArmors(const cv::Mat &src)
 
     for (auto &armor_contour : armor_contours) 
     {
+
+	RotatedRect rect_tmp = minAreaRect(armor_contour);
+	float width = rect_tmp.size.width;
+	float height = rect_tmp.size.height;
+	if(height > width) swap(height, width);
+	float area = width*height;
+	if(height/width>0.7173846 || area>2000 || area < 100)
+		continue;
+/*
         if (!isValidArmorContour(armor_contour)) // 此函数用于判断找到的矩形候选区是否为装甲板
         {
             continue;
         }
+	
+*/
         armors.emplace_back(cv::minAreaRect(armor_contour));
     }
 
+    
+    //std::vector<Vec4i> hierarchy3;
+
+    //std::vector<Vec4i> hierarchy2;
+    //Mat imgContours2 = Mat::zeros(src.size(), CV_8UC1);
 //    if (show_info) 
 //    {
-//        if (armors.size() < 1)cout << "no armors!" << endl;
+       if (armors.size() < 1)cout << "no armors!" << endl;
+
+       else
+	       cout << "size=" << armors.size() << endl;
 //    }
 
     return static_cast<int>(armors.size());
 }
+/*
+void Energy::find(cv::Mat &src)
+{
+	std::vector<std::vector<cv::Point> > contours;
+	std::vector<Vec4i> hierarchy;
+	cv::findContours(src, contours, hierarchy, CV_RETR_TREE, CHAIN_APPROX_SIMPLE);
 
+	RotatedRect rect_tmp;
+	if(hierarchy.size())
+	{
+		return;
+	}
+	for(int i=0;i>=0;i=)
+}*/
 
 
 void Energy::ArmorStruct(cv::Mat &src)
