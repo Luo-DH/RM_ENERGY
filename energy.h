@@ -34,6 +34,11 @@ class Energy
 		void initEnergy();
 		void initEnergyPartParam();// 能量机关参数初始化
 		
+		void found(cv::Mat&src);
+		double getDistance(cv::Point A, cv::Point B);
+		double TemplateMatch(cv::Mat image, cv::Mat tepl, cv::Point &point, int method);
+		void findArmor(std::vector<std::vector<cv::Point>> contours, cv::Mat src);
+
 		int findArmors(const cv::Mat &src); // 寻找途中所有装甲版
 
 		bool isValidArmorContour(const vector<cv::Point>&armor_contour);

@@ -42,6 +42,200 @@ void Energy::initEnergyPartParam()
 	energy_part_param_.ARMOR_CONTOUR_HW_RATIO_MIN = 0.1;
 }
 
+//获取点间距离
+double Energy::getDistance(Point A,Point B) // 欧式距离
+{
+    double dis;
+    dis=pow((A.x-B.x),2)+pow((A.y-B.y),2);
+    return sqrt(dis);
+}
+
+void Energy::found(cv::Mat& src)
+{
+	Mat templ[9];
+	for(int i=1;i<9;i++)
+	{
+		templ[i] = imread("../template/template"+to_string(i)+".jpg", IMREAD_GRAYSCALE);
+	}
+
+	// 查找轮廓
+	std::vector<std::vector<cv::Point> > contours2;
+	std::vector<Vec4i> hierarchy2;
+	cv::Mat midImage2;
+	midImage2 = src.clone();
+
+	cv::findContours(midImage2, contours2, hierarchy2, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
+
+	RotatedRect rect_tmp2;
+	if(contours2.size() == 0)
+	{
+		cout << "没有找到轮廓" << endl;
+		return;
+	}
+	for(int i=0; i<contours2.size(); i++)
+	{
+		rect_tmp2 = minAreaRect(contours2[i]);
+		Point2f P[4];
+		// 将矩形四个点保存在P中
+		rect_tmp2.points(P);
+
+		// 为透视变换做准备
+		Point2f srcRect[3];
+		Point2f dstRect[3];
+
+		double width;
+		double height;
+
+		width = getDistance(P[0], P[1]);
+		height = getDistance(P[1], P[2]);
+
+		if(width > height)
+		{
+			srcRect[0] = P[0];
+			srcRect[1] = P[1];
+			srcRect[2] = P[2];
+			srcRect[3] = P[3];
+		}
+		else
+		{
+			swap(width, height);
+			srcRect[0] = P[1];
+			srcRect[1] = P[2];
+			srcRect[2] = P[3];
+			srcRect[3] = P[0];
+		}
+
+		double area = height*width;
+		if(area < 5000)
+			continue;
+		dstRect[0] = Point2f(0, 0);
+		dstRect[1] = Point2f(width, 0);
+		dstRect[2] = Point2f(width, height);
+		dstRect[3] = Point2f(0, height);
+
+		Mat warp_mat = getAffineTransform(srcRect, dstRect);
+		Mat warp_dst_map;
+
+		warpAffine(midImage2, warp_dst_map, warp_mat, warp_dst_map.size());
+
+		// 提取扇叶图片
+		Mat testim;
+		testim = warp_dst_map(Rect(0,0,width, height));
+		
+		imshow("test", testim);
+
+		// USE_TEMPLATE
+		cv::Point matchLoc;
+		double value;
+		Mat tmp1;
+		resize(testim, tmp1, Size(42, 20));
+
+		vector<double> Vvalue1;
+		vector<double> Vvalue2;
+		for(int j=1;j<=6;j++)
+		{
+			value = TemplateMatch(tmp1, templ[j], matchLoc, CV_TM_CCOEFF_NORMED);
+			Vvalue1.push_back(value);
+		}
+		for(int j=7;j<=8;j++)
+		{
+			value = TemplateMatch(tmp1,templ[j], matchLoc, CV_TM_CCOEFF_NORMED);
+			Vvalue2.push_back(value);
+		}
+		int maxv1 = 0;
+		int maxv2 = 0;
+
+		for(int t1=0;t1<6;t1++)
+		{
+			if(Vvalue1[t1]>Vvalue1[maxv1])
+				maxv1 = t1;
+		}
+		for(int t2=0;t2<2;t2++)
+			if(Vvalue2[t2]>Vvalue2[maxv2])
+				maxv2 = t2;
+		if(Vvalue1[maxv1]>Vvalue2[maxv2] && Vvalue1[maxv1]>0.6)
+		{
+//			findArmor(contours2, src);
+
+			RotatedRect rect_tmp = minAreaRect(contours2[i]);
+        		Point2f Pnt[4];
+        		rect_tmp.points(Pnt);
+        		const float maxHWRatio = 0.7153846;
+        		const float maxArea = 2000;
+        		const float minArea = 500;
+
+        		float width = rect_tmp.size.width;
+        		float height = rect_tmp.size.height;
+        		if(height>width)
+                		swap(height, width);
+        		float area = width*height;
+
+        		if(height/width>maxHWRatio || area>maxArea || area<minArea)
+                		continue;
+        		Point centerP = rect_tmp.center;
+
+			cout << centerP << endl;
+     /*   circle(src, centerP,1,Scalar(0,255,0),10);
+	//showArmors("made1",src);
+	imshow("made1", src);
+	waitKey(1);
+*/		}
+	}
+
+}
+/*
+double Energy::TemplateMatch(cv::Mat image, cv::Mat tepl, cv::Point &point, int method)
+{
+	int result_cols = image.cols - tepl.cols + 1;
+	int result_rows = image.rows - tepl.rows + 1;
+
+	cv::Mat result = cv::Mat(result_cols, result_rows, CV_32FC1);
+	cv::matchTemplate(image, tepl, result, method);
+
+	double minVal, maxVal;
+	cv::Point minLoc, maxLoc;
+	cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
+
+	switch(method)
+	{
+		case CV_TM_SQDIFF:
+		case CV_TM_SQDIFF_NORMED:
+			point = minLoc;
+			return minVal;
+		default:
+			point = maxLoc;
+			return maxVal;
+	}
+}
+*/
+
+//模板匹配
+double Energy::TemplateMatch(cv::Mat image, cv::Mat tepl, cv::Point &point, int method)
+{
+    int result_cols =  image.cols - tepl.cols + 1;
+    int result_rows = image.rows - tepl.rows + 1;
+//    cout <<result_cols<<" "<<result_rows<<endl;
+    cv::Mat result = cv::Mat( result_cols, result_rows, CV_32FC1 );
+    cv::matchTemplate( image, tepl, result, method );
+
+    double minVal, maxVal;
+    cv::Point minLoc, maxLoc;
+    cv::minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
+
+    switch(method)
+    {
+    case CV_TM_SQDIFF:
+    case CV_TM_SQDIFF_NORMED:
+        point = minLoc;
+        return minVal;
+
+    default:
+        point = maxLoc;
+        return maxVal;
+
+    }
+}
+
 //---------------------------------------
 //此函数为能量机关主控制流函数
 //---------------------------------------
@@ -51,9 +245,10 @@ void Energy::run(cv::Mat &src)
 	clearAll();
 	src = initImage(src);
 
-	if (show_process) imshow("bin", src);
-	if (findArmors(src)<1) return;
-	if (show_energy) showArmors("made", src_clone);
+	//if (show_process) imshow("bin", src);
+	//if (findArmors(src)<1) return;
+	//if (show_energy) showArmors("made", src_clone);
+	found(src);
 
 }
 
@@ -110,7 +305,29 @@ Mat midImage = imgChannels.at(0) - imgChannels.at(2);
 
 	return midImage;
 }
+/*
+void Energy::findArmor(std::vector<std::vector<cv::Point>> contours, cv::Mat &src)
+{
+	RotatedRect rect_tmp = minAreaRect(contours[0]);
+	Point2f Pnt[4];
+	rect_tmp.points(Pnt);
+	const float maxHWRatio = 0.7153846;
+	const float maxArea = 2000;
+	const float minArea = 500;
 
+	float width = rect_tmp.size.width;
+	float height = rect_tmp.size.height;
+	if(height>width)
+		swap(height, width);
+	float area = width*height;
+
+	if(height/width>maxHWRatio || area>maxArea || area<minArea)
+		return;
+	Point centerP = rect_tmp.center;
+
+	circle(src, centerP,1,Scalar(0,255,0),2);
+}
+*/
 int Energy::findArmors(const cv::Mat &src)
 {
     if (src.empty())                // 如果没有图像
@@ -131,7 +348,7 @@ int Energy::findArmors(const cv::Mat &src)
 //------------------------------
 //画轮廓-----------------------
 //------------------------------
-/*
+
     Mat imgContours = Mat::zeros(src.size(), CV_8UC1);
     for(int i=0;i<armor_contours.size();i++)
     {
@@ -139,19 +356,19 @@ int Energy::findArmors(const cv::Mat &src)
     }
     imshow("contours", imgContours);
  //   waitKey(0);
-*/
+
     if (show_process)imshow("armor struct", src_bin);
-/*
+
     std::vector<Vec4i> hierarchy2;
     Mat imgContours2 = Mat::zeros(src.size(), CV_8UC1);
-*/    findContours(src_bin, armor_contours_external, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-/*    for (int i=0;i<armor_contours_external.size();i++)
+    findContours(src_bin, armor_contours_external, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+    for (int i=0;i<armor_contours_external.size();i++)
     {
 	    cv::drawContours(imgContours2,armor_contours_external,i,Scalar(255),1,8,hierarchy2);
     }
     imshow("external", imgContours2);
     waitKey(1);
-*/
+
     for (int i = 0; i < armor_contours_external.size(); i++)//去除外轮廓
     {
         unsigned long external_contour_size = armor_contours_external[i].size();
